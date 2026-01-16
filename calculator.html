@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Investment Growth Projection</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      font-family: "Avenir Next", "Avenir", "Futura", "Trebuchet MS", sans-serif;
+      color-scheme: light;
+      --bg: #f5efe5;
+      --bg-deep: #d9e3d6;
+      --ink: #1f2622;
+      --muted: #4d5a54;
+      --card: #fbf8f1;
+      --border: #d6cdc1;
+      --accent: #2f6b4f;
+      --accent-strong: #23543d;
+      --soft: #f0ebe2;
+      --input: #f6f1e8;
+      --danger: #b84735;
+      --chart-text: #1f2622;
+      --chart-text-muted: #5a635e;
+    }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(900px 360px at 10% 5%, #f9f5ee 0%, transparent 60%),
+        radial-gradient(800px 400px at 90% 10%, #e7efe6 0%, transparent 60%),
+        linear-gradient(160deg, var(--bg) 0%, var(--bg-deep) 100%);
+      color: var(--ink);
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px 18px 42px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px; box-shadow: 0 18px 40px rgba(31, 38, 34, 0.08); }
+    .appTitle { font-size: 18px; margin: 0 0 12px; font-weight: 700; letter-spacing: 0.2px; }
+
+    .section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .section:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+
+    .sectionTitle { font-size: 13px; color: var(--muted); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
+    .tiny { font-size: 12px; color: var(--muted); margin: 0 0 8px; line-height: 1.35; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--ink);
+      box-sizing: border-box;
+    }
+
+    button { padding: 10px 14px; border-radius: 10px; border: 0; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+    button.secondary { background: #4f5b55; }
+    button.danger { background: var(--danger); }
+
+    .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-top: 10px; }
+    .note { font-size: 12px; color: var(--muted); line-height: 1.35; }
+    .out { margin-top: 10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+
+    .panel {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+    .panel .out { margin-top: 0; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; font-size: 12px; }
+    th { text-align: left; color: var(--muted); }
+    td:last-child, th:last-child { text-align: right; }
+
+    .chartWrap { margin-top: 12px; height: 320px; }
+    canvas { width: 100% !important; height: 100% !important; background: #fcfaf6; border: 1px solid var(--border); border-radius: 14px; }
+
+    .errorBox {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #c06055;
+      background: #f6e2dc;
+      color: #7c2319;
+      display: none;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    .badRow input {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 2px rgba(180, 71, 53, 0.2);
+    }
+
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      button { width: 100%; }
+      .chartWrap { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2 class="appTitle">Investment Growth Projection</h2>
+
+      <!-- INCOME SECTION -->
+      <div class="section">
+        <div class="sectionTitle">Income & monthly budget</div>
+        <div class="tiny">
+          Estimates take-home pay using Income Tax + employee National Insurance (UK 2025/26).
+          Doesn’t include pension, student loan, benefits, etc.
+        </div>
+
+        <div class="grid">
+          <div>
+            <label for="grossIncome">Annual gross income</label>
+            <input id="grossIncome" type="number" min="0" step="500" value="60000" />
+          </div>
+          <div>
+            <label for="taxRegion">Tax region</label>
+            <select id="taxRegion">
+              <option value="rUK" selected>England / Wales / Northern Ireland</option>
+              <option value="SCO">Scotland</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:10px;">
+          <div>
+            <label for="rentMonthly">Monthly rent</label>
+            <input id="rentMonthly" type="number" min="0" step="50" value="1500" />
+          </div>
+          <div>
+            <label for="livingMonthly">Monthly living costs</label>
+            <input id="livingMonthly" type="number" min="0" step="50" value="900" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="note">Click to recompute (it also updates as you type).</div>
+          <button id="calcIncome" type="button">Calc net pay</button>
+        </div>
+
+        <div class="panel">
+          <div id="incomeOut" class="out"></div>
+        </div>
+      </div>
+
+      <!-- PORTFOLIO BASICS -->
+      <div class="section">
+        <div class="sectionTitle">Portfolio setup</div>
+        <div class="tiny">Starting pot is your current invested value. Projection is how many years to simulate.</div>
+
+        <div class="grid">
+          <div>
+            <label for="start">Starting pot</label>
+            <input id="start" type="number" min="0" step="100" value="10000" />
+          </div>
+          <div>
+            <label for="years">Projection (years)</label>
+            <input id="years" type="number" min="1" step="1" value="30" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTRIBUTIONS -->
+      <div class="section">
+        <div class="sectionTitle">Monthly contribution schedule</div>
+        <div class="tiny">Ranges are <b>start-inclusive</b>, <b>end-exclusive</b>. Later rows override earlier rows if they overlap.</div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">From year</th>
+              <th style="width: 20%;">To year</th>
+              <th>Monthly contribution</th>
+              <th style="width: 120px;"></th>
+            </tr>
+          </thead>
+          <tbody id="schedBody"></tbody>
+        </table>
+      </div>
+
+      <!-- WITHDRAWALS -->
+      <div class="section">
+        <div class="sectionTitle">Lump sum withdrawals</div>
+        <div class="tiny">
+          Enter a year (whole number). Withdrawal is applied at the <b>end of that year</b>.
+          Amount is positive (money removed).
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">Year</th>
+              <th>Withdrawal amount</th>
+              <th style="width: 120px;"></th>
+            </tr>
+          </thead>
+          <tbody id="wBody"></tbody>
+        </table>
+
+        <div id="errors" class="errorBox"></div>
+      </div>
+
+      <!-- ACTIONS + OUTPUT -->
+      <div class="section">
+        <div class="row">
+          <div class="note">
+            Assumed annual returns: <b>Bad 3%</b>, <b>Average 7%</b>, <b>Good 10%</b>.
+            Monthly compounding. Plot shows yearly points for speed.
+          </div>
+          <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+            <button id="addRow" class="secondary" type="button">Add contrib row</button>
+            <button id="addW" class="secondary" type="button">Add withdrawal</button>
+            <button id="run" type="button">Run</button>
+          </div>
+        </div>
+
+        <div id="output" class="out"></div>
+        <div class="chartWrap"><canvas id="chart"></canvas></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const scenarios = [
+      { name: "Bad (3%/yr)", annual: 0.03 },
+      { name: "Average (7%/yr)", annual: 0.07 },
+      { name: "Good (10%/yr)", annual: 0.10 },
+    ];
+
+    function annualToMonthlyRate(annualReturn) {
+      return Math.pow(1 + annualReturn, 1/12) - 1;
+    }
+
+    function fmtMoney(x) {
+      return Number(x).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    }
+
+    function fmtCompact(x) {
+      const ax = Math.abs(x);
+      if (ax >= 1e9) return (x/1e9).toFixed(1) + "b";
+      if (ax >= 1e6) return (x/1e6).toFixed(1) + "m";
+      if (ax >= 1e3) return (x/1e3).toFixed(1) + "k";
+      return String(Math.round(x));
+    }
+
+    function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+    function calcPersonalAllowance(gross) {
+      const PA0 = 12570;
+      if (gross <= 100000) return PA0;
+      const reduced = PA0 - (gross - 100000) / 2;
+      return clamp(reduced, 0, PA0);
+    }
+
+    function taxByBands(taxable, bands) {
+      let remaining = taxable;
+      let prev = 0;
+      let tax = 0;
+      for (const b of bands) {
+        const bandSize = (b.upTo === Infinity) ? remaining : Math.max(0, b.upTo - prev);
+        const inBand = Math.max(0, Math.min(remaining, bandSize));
+        tax += inBand * b.rate;
+        remaining -= inBand;
+        prev = b.upTo;
+        if (remaining <= 0) break;
+      }
+      return tax;
+    }
+
+    function calcIncomeTax(gross, region) {
+      const PA = calcPersonalAllowance(gross);
+      const taxable = Math.max(0, gross - PA);
+
+      if (region === "SCO") {
+        const bands = [
+          { upTo: (15397 - 12570), rate: 0.19 },
+          { upTo: (27491 - 12570), rate: 0.20 },
+          { upTo: (43662 - 12570), rate: 0.21 },
+          { upTo: (75000 - 12570), rate: 0.42 },
+          { upTo: (125140 - 12570), rate: 0.45 },
+          { upTo: Infinity, rate: 0.48 },
+        ];
+        return taxByBands(taxable, bands);
+      } else {
+        const bands = [
+          { upTo: (50270 - 12570), rate: 0.20 },
+          { upTo: (125140 - 12570), rate: 0.40 },
+          { upTo: Infinity, rate: 0.45 },
+        ];
+        return taxByBands(taxable, bands);
+      }
+    }
+
+    function calcEmployeeNI(grossAnnual) {
+      const PT = 242 * 52;   // 12,584
+      const UEL = 967 * 52;  // 50,284
+      if (grossAnnual <= PT) return 0;
+      const mainBand = Math.min(grossAnnual, UEL) - PT;
+      const upperBand = Math.max(0, grossAnnual - UEL);
+      return mainBand * 0.08 + upperBand * 0.02;
+    }
+
+    function calcNetIncome(gross, region) {
+      const incomeTax = calcIncomeTax(gross, region);
+      const ni = calcEmployeeNI(gross);
+      const net = gross - incomeTax - ni;
+      return { net, incomeTax, ni };
+    }
+
+    function renderIncome() {
+      const gross = Number(document.getElementById("grossIncome").value);
+      const region = document.getElementById("taxRegion").value;
+      const rent = Number(document.getElementById("rentMonthly").value);
+      const living = Number(document.getElementById("livingMonthly").value);
+
+      const out = document.getElementById("incomeOut");
+
+      if (!Number.isFinite(gross) || gross < 0) {
+        out.textContent = "Enter a valid non-negative annual gross income.";
+        return;
+      }
+      if (!Number.isFinite(rent) || rent < 0 || !Number.isFinite(living) || living < 0) {
+        out.textContent = "Enter valid non-negative monthly rent and living costs.";
+        return;
+      }
+
+      const { net, incomeTax, ni } = calcNetIncome(gross, region);
+      const netMonthly = net / 12;
+
+      const expensesMonthly = rent + living;
+      const leftoverMonthly = netMonthly - expensesMonthly;
+
+      out.textContent =
+        `Gross annual: ${fmtMoney(gross)}\n` +
+        `Income Tax (est): ${fmtMoney(incomeTax)}\n` +
+        `Employee NI (est): ${fmtMoney(ni)}\n` +
+        `Net annual (est): ${fmtMoney(net)}\n` +
+        `Net monthly (est): ${fmtMoney(netMonthly)}\n\n` +
+        `Monthly rent: ${fmtMoney(rent)}\n` +
+        `Monthly living costs: ${fmtMoney(living)}\n` +
+        `Total monthly expenses: ${fmtMoney(expensesMonthly)}\n\n` +
+        `Leftover per month: ${fmtMoney(leftoverMonthly)}`;
+    }
+
+    // ---------- UI row builders ----------
+    function addContribRow(from=0, to=3, monthly=500) {
+      const tbody = document.getElementById("schedBody");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="number" min="0" step="1" value="${from}" data-field="from"></td>
+        <td><input type="number" min="0" step="1" value="${to}" data-field="to"></td>
+        <td><input type="number" min="0" step="50" value="${monthly}" data-field="monthly"></td>
+        <td><button type="button" class="danger">Remove</button></td>
+      `;
+      tr.querySelector("button").addEventListener("click", () => { tr.remove(); validateUI(); });
+      tr.querySelectorAll("input").forEach(inp => { inp.addEventListener("input", validateUI); inp.addEventListener("change", validateUI); });
+      tbody.appendChild(tr);
+      validateUI();
+    }
+
+    function addWithdrawalRow(year=5, amount=20000) {
+      const tbody = document.getElementById("wBody");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="number" min="0" step="1" value="${year}" data-field="year"></td>
+        <td><input type="number" min="0" step="100" value="${amount}" data-field="amount"></td>
+        <td><button type="button" class="danger">Remove</button></td>
+      `;
+      tr.querySelector("button").addEventListener("click", () => { tr.remove(); validateUI(); });
+      tr.querySelectorAll("input").forEach(inp => { inp.addEventListener("input", validateUI); inp.addEventListener("change", validateUI); });
+      tbody.appendChild(tr);
+      validateUI();
+    }
+
+    // ---------- Read rows ----------
+    function readContribRowsWithEls() {
+      const rows = [...document.querySelectorAll("#schedBody tr")];
+      return rows.map(tr => {
+        const fromEl = tr.querySelector('input[data-field="from"]');
+        const toEl = tr.querySelector('input[data-field="to"]');
+        const monthlyEl = tr.querySelector('input[data-field="monthly"]');
+        return { tr, fromEl, toEl, monthlyEl,
+          from: Number(fromEl.value), to: Number(toEl.value), monthly: Number(monthlyEl.value)
+        };
+      });
+    }
+
+    function readWithdrawalRowsWithEls() {
+      const rows = [...document.querySelectorAll("#wBody tr")];
+      return rows.map(tr => {
+        const yearEl = tr.querySelector('input[data-field="year"]');
+        const amountEl = tr.querySelector('input[data-field="amount"]');
+        return { tr, yearEl, amountEl,
+          year: Number(yearEl.value), amount: Number(amountEl.value)
+        };
+      });
+    }
+
+    // ---------- Validation ----------
+    function validateAll(contribRows, wRows, years) {
+      const errors = [];
+      contribRows.forEach(r => r.tr.classList.remove("badRow"));
+      wRows.forEach(r => r.tr.classList.remove("badRow"));
+
+      if (!Number.isFinite(years) || years < 1 || years > 80) errors.push(`Projection years must be between 1 and 80.`);
+      if (contribRows.length === 0) errors.push("Add at least one contribution schedule row.");
+
+      contribRows.forEach((r, idx) => {
+        const rowNum = idx + 1;
+
+        if (!Number.isFinite(r.from) || !Number.isFinite(r.to) || !Number.isFinite(r.monthly)) { errors.push(`Contribution row ${rowNum}: values must be numbers.`); r.tr.classList.add("badRow"); return; }
+        if (!Number.isInteger(r.from) || !Number.isInteger(r.to)) { errors.push(`Contribution row ${rowNum}: from/to years must be whole numbers.`); r.tr.classList.add("badRow"); }
+        if (r.from < 0 || r.to < 0) { errors.push(`Contribution row ${rowNum}: years cannot be negative.`); r.tr.classList.add("badRow"); }
+        if (r.to <= r.from) { errors.push(`Contribution row ${rowNum}: "To year" must be greater than "From year".`); r.tr.classList.add("badRow"); }
+        if (r.from >= years) { errors.push(`Contribution row ${rowNum}: "From year" must be less than projection (${years}).`); r.tr.classList.add("badRow"); }
+        if (r.to > years) { errors.push(`Contribution row ${rowNum}: "To year" cannot exceed projection (${years}).`); r.tr.classList.add("badRow"); }
+        if (r.monthly < 0) { errors.push(`Contribution row ${rowNum}: monthly contribution cannot be negative.`); r.tr.classList.add("badRow"); }
+      });
+
+      wRows.forEach((r, idx) => {
+        const rowNum = idx + 1;
+
+        if (!Number.isFinite(r.year) || !Number.isFinite(r.amount)) { errors.push(`Withdrawal row ${rowNum}: values must be numbers.`); r.tr.classList.add("badRow"); return; }
+        if (!Number.isInteger(r.year)) { errors.push(`Withdrawal row ${rowNum}: year must be a whole number.`); r.tr.classList.add("badRow"); }
+        if (r.year < 0 || r.year > years) { errors.push(`Withdrawal row ${rowNum}: year must be between 0 and ${years}.`); r.tr.classList.add("badRow"); }
+        if (r.amount < 0) { errors.push(`Withdrawal row ${rowNum}: withdrawal amount cannot be negative.`); r.tr.classList.add("badRow"); }
+      });
+
+      return { ok: errors.length === 0, errors };
+    }
+
+    // ---------- Build cashflow schedules ----------
+    function buildContribByMonth(contribRows, years) {
+      const months = years * 12;
+      const contribByMonth = new Array(months).fill(0);
+
+      const sorted = contribRows
+        .map(r => ({ from: r.from, to: r.to, monthly: r.monthly }))
+        .sort((a,b) => a.from - b.from);
+
+      for (const s of sorted) {
+        const startM = s.from * 12;
+        const endM = s.to * 12;
+        for (let m = startM; m < endM; m++) contribByMonth[m] = s.monthly;
+      }
+      return contribByMonth;
+    }
+
+    function buildWithdrawalsByYearEnd(wRows, years) {
+      const arr = new Array(years + 1).fill(0);
+      for (const r of wRows) arr[r.year] += r.amount;
+      return arr;
+    }
+
+    // ---------- Simulation ----------
+    function simulateYearly(startingPot, contribByMonth, withdrawalsByYearEnd, annualReturn, years) {
+      const months = years * 12;
+      const r = annualToMonthlyRate(annualReturn);
+
+      let v = startingPot;
+      v -= (withdrawalsByYearEnd[0] ?? 0); // immediate year-0 withdrawal
+
+      const yearly = [v];
+
+      for (let m = 1; m <= months; m++) {
+        const c = contribByMonth[m - 1] ?? 0;
+        v = v * (1 + r) + c;
+
+        if (m % 12 === 0) {
+          const year = m / 12;
+          v -= (withdrawalsByYearEnd[year] ?? 0);
+          yearly.push(v);
+        }
+      }
+      return yearly;
+    }
+
+    function contributedNetYearly(startingPot, contribByMonth, withdrawalsByYearEnd, years) {
+      const months = years * 12;
+      let total = startingPot - (withdrawalsByYearEnd[0] ?? 0);
+      const yearly = [total];
+
+      for (let m = 1; m <= months; m++) {
+        total += (contribByMonth[m - 1] ?? 0);
+        if (m % 12 === 0) {
+          const year = m / 12;
+          total -= (withdrawalsByYearEnd[year] ?? 0);
+          yearly.push(total);
+        }
+      }
+      return yearly;
+    }
+
+    // ---------- Chart ----------
+    const errorsEl = document.getElementById("errors");
+    const runBtn = document.getElementById("run");
+    const ctx = document.getElementById("chart");
+    let chart = null;
+    const rootStyles = getComputedStyle(document.documentElement);
+    const chartText = rootStyles.getPropertyValue("--chart-text").trim() || "#1f2622";
+    const chartTextMuted = rootStyles.getPropertyValue("--chart-text-muted").trim() || "#5a635e";
+
+    function validateUI() {
+      const years = Math.floor(Number(document.getElementById("years").value));
+      const contribRows = readContribRowsWithEls();
+      const wRows = readWithdrawalRowsWithEls();
+
+      const v = validateAll(contribRows, wRows, years);
+
+      if (!v.ok) {
+        errorsEl.style.display = "block";
+        errorsEl.textContent = "Fix these before running:\n- " + v.errors.join("\n- ");
+        runBtn.disabled = true;
+        runBtn.style.opacity = 0.6;
+        return false;
+      } else {
+        errorsEl.style.display = "none";
+        errorsEl.textContent = "";
+        runBtn.disabled = false;
+        runBtn.style.opacity = 1;
+        return true;
+      }
+    }
+
+    function run() {
+      if (!validateUI()) return;
+
+      const startingPot = Number(document.getElementById("start").value);
+      const years = Math.floor(Number(document.getElementById("years").value));
+
+      if (!Number.isFinite(startingPot) || startingPot < 0) {
+        errorsEl.style.display = "block";
+        errorsEl.textContent = "Starting pot must be a valid non-negative number.";
+        return;
+      }
+
+      const contribRows = readContribRowsWithEls();
+      const wRows = readWithdrawalRowsWithEls();
+
+      const contribByMonth = buildContribByMonth(contribRows, years);
+      const withdrawalsByYearEnd = buildWithdrawalsByYearEnd(wRows, years);
+
+      const labels = Array.from({ length: years + 1 }, (_, y) => y);
+      const netContribYearly = contributedNetYearly(startingPot, contribByMonth, withdrawalsByYearEnd, years);
+
+      const datasets = scenarios.map(s => ({
+        label: s.name,
+        data: simulateYearly(startingPot, contribByMonth, withdrawalsByYearEnd, s.annual, years),
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.15
+      }));
+
+      datasets.push({
+        label: "Net Contributed (after withdrawals)",
+        data: netContribYearly,
+        borderWidth: 2,
+        pointRadius: 0,
+        borderDash: [8, 6],
+        tension: 0.0
+      });
+
+      const totalMonthlyContrib = contribByMonth.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+      const totalContribGross = startingPot + totalMonthlyContrib;
+      const totalWithdrawn = withdrawalsByYearEnd.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+      const totalContribNet = totalContribGross - totalWithdrawn;
+
+      let text = `Horizon: ${years} years\n`;
+      text += `Starting pot: ${fmtMoney(startingPot)}\n`;
+      text += `Monthly contributions total: ${fmtMoney(totalMonthlyContrib)}\n`;
+      text += `Total contributed (gross): ${fmtMoney(totalContribGross)}\n`;
+      text += `Total withdrawn: ${fmtMoney(totalWithdrawn)}\n`;
+      text += `Net contributed: ${fmtMoney(totalContribNet)}\n\n`;
+      text += `Ending portfolio values:\n`;
+
+      scenarios.forEach((s, idx) => {
+        const endVal = datasets[idx].data[years];
+        const gain = endVal - totalContribNet;
+        text += `  ${s.name}: ${fmtMoney(endVal)} (Gain vs net contrib: ${fmtMoney(gain)})\n`;
+      });
+
+      document.getElementById("output").textContent = text;
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: chartText } },
+            tooltip: { callbacks: { label: (item) => `${item.dataset.label}: ${fmtMoney(item.parsed.y)}` } }
+          },
+          scales: {
+            x: { title: { display: true, text: "Years", color: chartText }, ticks: { color: chartTextMuted } },
+            y: { title: { display: true, text: "Value", color: chartText }, ticks: { color: chartTextMuted, callback: (v) => fmtCompact(v) } }
+          }
+        }
+      });
+    }
+
+    // ---------- Wire up ----------
+    document.getElementById("addRow").addEventListener("click", () => {
+      const years = Math.floor(Number(document.getElementById("years").value) || 30);
+      const contribRows = readContribRowsWithEls().map(r => ({ to: r.to }));
+      const maxTo = contribRows.reduce((mx, r) => Number.isFinite(r.to) ? Math.max(mx, r.to) : mx, 0);
+      const from = Math.min(Math.max(0, Math.floor(maxTo)), years - 1);
+      const to = Math.min(years, from + 5);
+      addContribRow(from, to, 500);
+    });
+
+    document.getElementById("addW").addEventListener("click", () => {
+      const years = Math.floor(Number(document.getElementById("years").value) || 30);
+      addWithdrawalRow(Math.min(5, years), 20000);
+    });
+
+    document.getElementById("run").addEventListener("click", run);
+    document.getElementById("years").addEventListener("input", validateUI);
+
+    document.getElementById("calcIncome").addEventListener("click", renderIncome);
+    document.getElementById("grossIncome").addEventListener("input", renderIncome);
+    document.getElementById("taxRegion").addEventListener("change", renderIncome);
+    document.getElementById("rentMonthly").addEventListener("input", renderIncome);
+    document.getElementById("livingMonthly").addEventListener("input", renderIncome);
+
+    // Defaults
+    addContribRow(0, 3, 800);
+    addContribRow(3, 10, 1100);
+    addContribRow(10, 20, 2000);
+    addContribRow(20, 30, 2000);
+
+    addWithdrawalRow(7, 50000);
+
+    renderIncome();
+    validateUI();
+    run();
+  </script>
+</body>
+</html>
