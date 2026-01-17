@@ -816,6 +816,10 @@
 
       if (scrollSnapTimer) clearTimeout(scrollSnapTimer);
       scrollSnapTimer = setTimeout(() => {
+        if (window.scrollY < 80) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
         const rect = carouselScroll.getBoundingClientRect();
         const usable = rect.height - window.innerHeight;
         if (usable <= 0) return;
