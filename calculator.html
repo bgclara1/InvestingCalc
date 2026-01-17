@@ -1146,10 +1146,11 @@
       const stageW = rect.width;
       const stageH = rect.height;
 
-      const centerLeft = 0.14 * stageW;
-      const center = { left: centerLeft, top: 60, width: 0.72 * stageW, opacity: 1, blur: 0, z: 3 };
-      const prev = { left: centerLeft, top: 0, width: 0.72 * stageW, opacity: 0.45, blur: 0.6, z: 1 };
-      const next = { left: centerLeft, top: stageH * 0.62, width: 0.72 * stageW, opacity: 0.45, blur: 0.6, z: 2 };
+      const widthFactor = 0.92;
+      const centerLeft = (1 - widthFactor) * 0.5 * stageW;
+      const center = { left: centerLeft, top: 60, width: widthFactor * stageW, opacity: 1, blur: 0, z: 3 };
+      const prev = { left: centerLeft, top: 0, width: widthFactor * stageW, opacity: 0.45, blur: 0.6, z: 1 };
+      const next = { left: centerLeft, top: stageH * 0.62, width: widthFactor * stageW, opacity: 0.45, blur: 0.6, z: 2 };
 
       carouselCards.forEach((card, idx) => {
         const offset = idx - progress;
