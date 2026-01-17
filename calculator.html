@@ -200,6 +200,26 @@
       color: var(--ink);
       box-sizing: border-box;
     }
+    .moneyFieldWrap {
+      position: relative;
+      width: 100%;
+      display: block;
+    }
+    .moneyFieldWrap::before {
+      content: "£";
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .moneyFieldWrap input {
+      padding-left: 22px;
+    }
 
     button { padding: 10px 14px; border-radius: 10px; border: 0; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
     button.secondary { background: #4f5b55; }
@@ -217,6 +237,46 @@
       margin-top: 10px;
     }
     .panel .out { margin-top: 0; }
+    .insightGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .returnGrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .returnStack {
+      display: grid;
+      gap: 8px;
+    }
+    .insightCard.sub {
+      background: #f1eadf;
+      padding: 8px 10px;
+    }
+    .insightValue.sub {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .insightCard {
+      background: #f7f2e9;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .insightLabel {
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .insightValue {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
     .section.has-guide { position: relative; }
     .guide {
       background: rgba(47, 107, 79, 0.9);
@@ -294,7 +354,7 @@
     <div class="layout">
       <nav class="toc" id="toc">
         <button type="button" data-step="0">Income + budget</button>
-        <button type="button" data-step="1">Recompute output</button>
+        <button type="button" data-step="1">Current income insights</button>
         <button type="button" data-step="2">Portfolio setup</button>
         <button type="button" data-step="3">Income path</button>
         <button type="button" data-step="4">Monthly leftover</button>
@@ -318,8 +378,10 @@
 
           <div class="grid">
             <div>
-              <label for="grossIncome">Annual gross income</label>
+            <label for="grossIncome">Annual gross income</label>
+            <span class="moneyFieldWrap">
               <input id="grossIncome" type="number" min="0" step="500" value="60000" />
+            </span>
             </div>
             <div>
               <label for="taxRegion">Tax region</label>
@@ -332,12 +394,16 @@
 
           <div class="grid" style="margin-top:10px;">
             <div>
-              <label for="rentMonthly">Monthly rent</label>
+            <label for="rentMonthly">Monthly rent</label>
+            <span class="moneyFieldWrap">
               <input id="rentMonthly" type="number" min="0" step="50" value="1500" />
+            </span>
             </div>
             <div>
-              <label for="livingMonthly">Monthly living costs</label>
+            <label for="livingMonthly">Monthly living costs</label>
+            <span class="moneyFieldWrap">
               <input id="livingMonthly" type="number" min="0" step="50" value="900" />
+            </span>
             </div>
           </div>
         </div>
@@ -345,19 +411,32 @@
 
       <div class="carouselCard" data-step="1">
         <div class="section has-guide">
-          <div class="sectionTitle">Click to recompute</div>
+          <div class="sectionTitle">Insights</div>
           <div class="guide">
             Use this button if you want a clean recalculation after edits. The output updates live too,
             so consider it a quick refresh.
           </div>
-          <div class="tiny">Recalculate take-home pay and monthly leftover.</div>
-          <div class="row">
-            <div class="note">Click to recompute (it also updates as you type).</div>
-            <button id="calcIncome" type="button">Calc net pay</button>
+          <div class="insightGrid">
+            <div class="insightCard">
+              <div class="insightLabel">Net annual income</div>
+              <div id="insightNetAnnual" class="insightValue">—</div>
+            </div>
+            <div class="insightCard">
+              <div class="insightLabel">Net monthly income</div>
+              <div id="insightNetMonthly" class="insightValue">—</div>
+            </div>
+            <div class="insightCard">
+              <div class="insightLabel">Total expenses per month</div>
+              <div id="insightExpenses" class="insightValue">—</div>
+            </div>
+            <div class="insightCard">
+              <div class="insightLabel">Leftover per month</div>
+              <div id="insightLeftover" class="insightValue">—</div>
+            </div>
           </div>
 
           <div class="panel">
-            <div id="incomeOut" class="out"></div>
+            <div id="incomeDetails" class="out"></div>
           </div>
         </div>
       </div>
@@ -373,8 +452,10 @@
 
           <div class="grid">
             <div>
-              <label for="start">Starting pot</label>
+            <label for="start">Starting pot</label>
+            <span class="moneyFieldWrap">
               <input id="start" type="number" min="0" step="100" value="10000" />
+            </span>
             </div>
             <div>
               <label for="years">Projection (years)</label>
@@ -485,6 +566,48 @@
             Run the model to compare bad, average, and good return paths. Use the chart to sanity‑check
             whether your plan meets your target timeframe.
           </div>
+          <div class="insightGrid returnGrid">
+            <div class="returnStack">
+              <div class="insightCard">
+                <div class="insightLabel">Good market return</div>
+                <div id="returnGood" class="insightValue">—</div>
+              </div>
+              <div class="insightCard sub">
+                <div class="insightLabel">Delta vs contribution</div>
+                <div id="returnGoodDelta" class="insightValue sub">—</div>
+              </div>
+            </div>
+            <div class="returnStack">
+              <div class="insightCard">
+                <div class="insightLabel">Average market return</div>
+                <div id="returnAverage" class="insightValue">—</div>
+              </div>
+              <div class="insightCard sub">
+                <div class="insightLabel">Delta vs contribution</div>
+                <div id="returnAverageDelta" class="insightValue sub">—</div>
+              </div>
+            </div>
+            <div class="returnStack">
+              <div class="insightCard">
+                <div class="insightLabel">Poor market return</div>
+                <div id="returnBad" class="insightValue">—</div>
+              </div>
+              <div class="insightCard sub">
+                <div class="insightLabel">Delta vs contribution</div>
+                <div id="returnBadDelta" class="insightValue sub">—</div>
+              </div>
+            </div>
+            <div class="returnStack">
+              <div class="insightCard">
+                <div class="insightLabel">Net contributed</div>
+                <div id="returnNetContrib" class="insightValue">—</div>
+              </div>
+              <div class="insightCard sub">
+                <div class="insightLabel">Total withdrawn</div>
+                <div id="returnWithdrawn" class="insightValue sub">—</div>
+              </div>
+            </div>
+          </div>
           <div class="row">
             <div class="note">
               Assumed annual returns: <b>Bad 3%</b>, <b>Average 7%</b>, <b>Good 10%</b>.
@@ -516,15 +639,17 @@
     }
 
     function fmtMoney(x) {
-      return Number(x).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      const n = Number(x);
+      if (!Number.isFinite(n)) return "£0";
+      return "£" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
     }
 
     function fmtCompact(x) {
       const ax = Math.abs(x);
-      if (ax >= 1e9) return (x/1e9).toFixed(1) + "b";
-      if (ax >= 1e6) return (x/1e6).toFixed(1) + "m";
-      if (ax >= 1e3) return (x/1e3).toFixed(1) + "k";
-      return String(Math.round(x));
+      if (ax >= 1e9) return "£" + (x/1e9).toFixed(1) + "b";
+      if (ax >= 1e6) return "£" + (x/1e6).toFixed(1) + "m";
+      if (ax >= 1e3) return "£" + (x/1e3).toFixed(1) + "k";
+      return "£" + String(Math.round(x));
     }
 
     function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
@@ -597,14 +722,27 @@
       const rent = Number(document.getElementById("rentMonthly").value);
       const living = Number(document.getElementById("livingMonthly").value);
 
-      const out = document.getElementById("incomeOut");
+      const details = document.getElementById("incomeDetails");
+      const netAnnualEl = document.getElementById("insightNetAnnual");
+      const netMonthlyEl = document.getElementById("insightNetMonthly");
+      const expensesEl = document.getElementById("insightExpenses");
+      const leftoverEl = document.getElementById("insightLeftover");
+
+      function setInsights(netAnnual, netMonthly, expenses, leftover) {
+        netAnnualEl.textContent = netAnnual;
+        netMonthlyEl.textContent = netMonthly;
+        expensesEl.textContent = expenses;
+        leftoverEl.textContent = leftover;
+      }
 
       if (!Number.isFinite(gross) || gross < 0) {
-        out.textContent = "Enter a valid non-negative annual gross income.";
+        setInsights("—", "—", "—", "—");
+        details.textContent = "Enter a valid non-negative annual gross income.";
         return;
       }
       if (!Number.isFinite(rent) || rent < 0 || !Number.isFinite(living) || living < 0) {
-        out.textContent = "Enter valid non-negative monthly rent and living costs.";
+        setInsights("—", "—", "—", "—");
+        details.textContent = "Enter valid non-negative monthly rent and living costs.";
         return;
       }
 
@@ -614,16 +752,21 @@
       const expensesMonthly = rent + living;
       const leftoverMonthly = netMonthly - expensesMonthly;
 
-      out.textContent =
+      setInsights(
+        fmtMoney(net),
+        fmtMoney(netMonthly),
+        fmtMoney(expensesMonthly),
+        fmtMoney(leftoverMonthly)
+      );
+
+      details.textContent =
         `Gross annual: ${fmtMoney(gross)}\n` +
         `Income Tax (est): ${fmtMoney(incomeTax)}\n` +
         `Employee NI (est): ${fmtMoney(ni)}\n` +
-        `Net annual (est): ${fmtMoney(net)}\n` +
-        `Net monthly (est): ${fmtMoney(netMonthly)}\n\n` +
+        `Net annual (est): ${fmtMoney(net)}\n\n` +
         `Monthly rent: ${fmtMoney(rent)}\n` +
         `Monthly living costs: ${fmtMoney(living)}\n` +
-        `Total monthly expenses: ${fmtMoney(expensesMonthly)}\n\n` +
-        `Leftover per month: ${fmtMoney(leftoverMonthly)}`;
+        `Total monthly expenses: ${fmtMoney(expensesMonthly)}`;
     }
 
     // ---------- UI row builders ----------
@@ -633,7 +776,7 @@
       tr.innerHTML = `
         <td><input type="number" min="0" step="1" value="${from}" data-field="from"></td>
         <td><input type="number" min="0" step="1" value="${to}" data-field="to"></td>
-        <td><input type="number" min="0" step="50" value="${monthly}" data-field="monthly"></td>
+        <td><span class="moneyFieldWrap"><input type="number" min="0" step="50" value="${monthly}" data-field="monthly"></span></td>
         <td><button type="button" class="danger">Remove</button></td>
       `;
       tr.querySelector("button").addEventListener("click", () => { tr.remove(); validateUI(); });
@@ -647,7 +790,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><input type="number" min="0" step="1" value="${year}" data-field="year"></td>
-        <td><input type="number" min="0" step="100" value="${amount}" data-field="amount"></td>
+        <td><span class="moneyFieldWrap"><input type="number" min="0" step="100" value="${amount}" data-field="amount"></span></td>
         <td><button type="button" class="danger">Remove</button></td>
       `;
       tr.querySelector("button").addEventListener("click", () => { tr.remove(); validateUI(); });
@@ -1115,6 +1258,21 @@
       });
 
       document.getElementById("output").textContent = text;
+      const badEnd = datasets[0].data[years];
+      const avgEnd = datasets[1].data[years];
+      const goodEnd = datasets[2].data[years];
+      const badGain = badEnd - totalContribNet;
+      const avgGain = avgEnd - totalContribNet;
+      const goodGain = goodEnd - totalContribNet;
+
+      document.getElementById("returnBad").textContent = fmtMoney(badEnd);
+      document.getElementById("returnAverage").textContent = fmtMoney(avgEnd);
+      document.getElementById("returnGood").textContent = fmtMoney(goodEnd);
+      document.getElementById("returnBadDelta").textContent = (badGain >= 0 ? "+" : "") + fmtMoney(badGain);
+      document.getElementById("returnAverageDelta").textContent = (avgGain >= 0 ? "+" : "") + fmtMoney(avgGain);
+      document.getElementById("returnGoodDelta").textContent = (goodGain >= 0 ? "+" : "") + fmtMoney(goodGain);
+      document.getElementById("returnNetContrib").textContent = fmtMoney(totalContribNet);
+      document.getElementById("returnWithdrawn").textContent = fmtMoney(totalWithdrawn);
 
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
@@ -1155,7 +1313,6 @@
     document.getElementById("run").addEventListener("click", run);
     document.getElementById("years").addEventListener("input", validateUI);
 
-    document.getElementById("calcIncome").addEventListener("click", renderIncome);
     document.getElementById("grossIncome").addEventListener("input", () => {
       renderIncome();
       if (incomePoints.length) setIncomePoint(0, Number(document.getElementById("grossIncome").value));
