@@ -25,15 +25,47 @@
     }
     body {
       margin: 0;
-      background:
-        radial-gradient(900px 360px at 10% 5%, #f9f5ee 0%, transparent 60%),
-        radial-gradient(800px 400px at 90% 10%, #e7efe6 0%, transparent 60%),
-        linear-gradient(160deg, var(--bg) 0%, var(--bg-deep) 100%);
+      background: radial-gradient(circle at top, #f7f2e8 0%, #eef5ee 40%, #f5efe5 100%);
       color: var(--ink);
     }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -20% -10%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(92, 158, 120, 0.28) 0%, rgba(92, 158, 120, 0) 42%),
+        radial-gradient(circle at 30% 70%, rgba(178, 142, 98, 0.28) 0%, rgba(178, 142, 98, 0) 46%),
+        radial-gradient(circle at 70% 35%, rgba(200, 127, 86, 0.28) 0%, rgba(200, 127, 86, 0) 40%),
+        radial-gradient(circle at 85% 80%, rgba(120, 168, 116, 0.24) 0%, rgba(120, 168, 116, 0) 45%);
+      filter: blur(0px);
+      animation: floatBlobs 22s ease-in-out infinite;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    body::after {
+      animation-duration: 30s;
+      animation-direction: reverse;
+      opacity: 0.65;
+      filter: blur(2px);
+    }
+    @keyframes floatBlobs {
+      0% { transform: translate3d(-2%, -1%, 0) scale(1); }
+      50% { transform: translate3d(2%, 2%, 0) scale(1.05); }
+      100% { transform: translate3d(-2%, -1%, 0) scale(1); }
+    }
     .wrap { max-width: none; width: 100%; margin: 0; padding: 18px 24px 42px; box-sizing: border-box; }
-    .appHeader { padding: 8px 6px 16px; }
-    .appTitle { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
+    .appHeader {
+      padding: 14px 16px 16px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(251, 248, 241, 0.9);
+      box-shadow: 0 14px 28px rgba(31, 38, 34, 0.08);
+    }
+    .appTitle { font-size: 20px; margin: 0 0 6px; font-weight: 700; letter-spacing: 0.2px; }
+    .appIntro { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0; }
 
     .layout { display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: start; }
     .toc {
@@ -90,6 +122,7 @@
       will-change: transform, opacity, filter, left, top, width;
       opacity: 0;
       pointer-events: none;
+      overflow: visible;
     }
     .carouselCard .section { margin-top: 0; padding-top: 0; border-top: 0; }
     .carouselCard .section + .section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
@@ -128,6 +161,19 @@
       margin-top: 10px;
     }
     .panel .out { margin-top: 0; }
+    .section.has-guide { position: relative; }
+    .guide {
+      background: rgba(47, 107, 79, 0.9);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 8px 0 14px;
+      box-shadow: 0 10px 20px rgba(31, 38, 34, 0.12);
+      position: static;
+      width: auto;
+    }
 
     table { width: 100%; border-collapse: collapse; margin-top: 8px; }
     th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; font-size: 12px; }
@@ -168,6 +214,11 @@
   <div class="wrap">
     <div class="appHeader">
       <h2 class="appTitle">Investment Growth Projection</h2>
+      <p class="appIntro">
+        Map your future income, estimate take-home pay, and test how different monthly contribution
+        schedules compound over time. Compare downside and upside return scenarios, then adjust
+        withdrawals to see how your plan holds up.
+      </p>
     </div>
 
     <div class="layout">
@@ -184,8 +235,12 @@
       <div class="carouselScroll" id="carouselScroll">
         <div class="carouselStage" id="carouselStage">
       <div class="carouselCard" data-step="0">
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Income & monthly budget</div>
+          <div class="guide">
+            Start with your current gross salary and tax region. Add rent and living costs to estimate
+            how much cash you have left each month.
+          </div>
           <div class="tiny">
             Estimates take-home pay using Income Tax + employee National Insurance (UK 2025/26).
             Doesn’t include pension, student loan, benefits, etc.
@@ -219,8 +274,12 @@
       </div>
 
       <div class="carouselCard" data-step="1">
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Click to recompute</div>
+          <div class="guide">
+            Use this button if you want a clean recalculation after edits. The output updates live too,
+            so consider it a quick refresh.
+          </div>
           <div class="tiny">Recalculate take-home pay and monthly leftover.</div>
           <div class="row">
             <div class="note">Click to recompute (it also updates as you type).</div>
@@ -234,8 +293,12 @@
       </div>
 
       <div class="carouselCard" data-step="2">
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Portfolio setup</div>
+          <div class="guide">
+            Enter your current invested balance and how many years you want to simulate. Longer horizons
+            will show more compounding over time.
+          </div>
           <div class="tiny">Starting pot is your current invested value. Projection is how many years to simulate.</div>
 
           <div class="grid">
@@ -252,8 +315,12 @@
       </div>
 
       <div class="carouselCard" data-step="3">
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Projected income path</div>
+          <div class="guide">
+            Drag each 5‑year dot to sketch how your salary might grow. This becomes the backbone for
+            your contribution plan later.
+          </div>
           <div class="tiny">
             Drag the dots (every 5 years) to sketch your future gross salary. The chart runs from 0-200,000 GBP.
           </div>
@@ -262,8 +329,12 @@
       </div>
 
       <div class="carouselCard" data-step="4">
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Monthly leftover at each point</div>
+          <div class="guide">
+            Review how much you can invest at each milestone. If the leftover looks too tight, go back
+            and adjust income or expenses.
+          </div>
           <table>
             <thead>
               <tr>
@@ -283,8 +354,12 @@
       </div>
 
       <div class="carouselCard" data-step="5">
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Monthly contribution schedule</div>
+          <div class="guide">
+            Add ranges that match your projected phases. Later rows override earlier ones if they overlap,
+            so you can refine your plan without deleting old entries.
+          </div>
           <div class="tiny">Ranges are <b>start-inclusive</b>, <b>end-exclusive</b>. Later rows override earlier rows if they overlap.</div>
 
           <table>
@@ -298,10 +373,18 @@
             </thead>
             <tbody id="schedBody"></tbody>
           </table>
+          <div class="row">
+            <div class="note">Add or remove contribution phases as your plan changes.</div>
+            <button id="addRow" class="secondary" type="button">Add contrib row</button>
+          </div>
         </div>
 
-        <div class="section">
+        <div class="section has-guide">
           <div class="sectionTitle">Lump sum withdrawals</div>
+          <div class="guide">
+            Add any big future expenses like a deposit or tuition. These are applied at the end of the year
+            you select.
+          </div>
           <div class="tiny">
             Enter a year (whole number). Withdrawal is applied at the <b>end of that year</b>.
             Amount is positive (money removed).
@@ -317,21 +400,27 @@
             </thead>
             <tbody id="wBody"></tbody>
           </table>
+          <div class="row">
+            <div class="note">Add future withdrawals to stress‑test your plan.</div>
+            <button id="addW" class="secondary" type="button">Add withdrawal</button>
+          </div>
 
           <div id="errors" class="errorBox"></div>
         </div>
       </div>
 
       <div class="carouselCard" data-step="6">
-        <div class="section">
+        <div class="section has-guide">
+          <div class="guide">
+            Run the model to compare bad, average, and good return paths. Use the chart to sanity‑check
+            whether your plan meets your target timeframe.
+          </div>
           <div class="row">
             <div class="note">
               Assumed annual returns: <b>Bad 3%</b>, <b>Average 7%</b>, <b>Good 10%</b>.
               Monthly compounding. Plot shows yearly points for speed.
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
-              <button id="addRow" class="secondary" type="button">Add contrib row</button>
-              <button id="addW" class="secondary" type="button">Add withdrawal</button>
               <button id="run" type="button">Run</button>
             </div>
           </div>
@@ -642,9 +731,10 @@
       const stageW = rect.width;
       const stageH = rect.height;
 
-      const center = { left: 0.14 * stageW, top: 60, width: 0.72 * stageW, opacity: 1, blur: 0, z: 3 };
-      const prev = { left: 0, top: 0, width: 0.64 * stageW, opacity: 0.45, blur: 0.6, z: 1 };
-      const next = { left: 0.46 * stageW, top: stageH * 0.52, width: 0.54 * stageW, opacity: 0.45, blur: 0.6, z: 2 };
+      const centerLeft = 0.14 * stageW;
+      const center = { left: centerLeft, top: 60, width: 0.72 * stageW, opacity: 1, blur: 0, z: 3 };
+      const prev = { left: centerLeft, top: 0, width: 0.72 * stageW, opacity: 0.45, blur: 0.6, z: 1 };
+      const next = { left: centerLeft, top: stageH * 0.62, width: 0.72 * stageW, opacity: 0.45, blur: 0.6, z: 2 };
 
       carouselCards.forEach((card, idx) => {
         const offset = idx - progress;
@@ -838,6 +928,7 @@
         const monthly = Math.max(0, Math.round(leftover));
         addContribRow(from, cappedTo, monthly);
       }
+      run();
     }
 
     function handleIncomePointerDown(evt) {

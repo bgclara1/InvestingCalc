@@ -21,18 +21,87 @@
     }
     body {
       margin: 0;
-      background:
-        radial-gradient(900px 360px at 10% 5%, #f9f5ee 0%, transparent 60%),
-        radial-gradient(800px 400px at 90% 10%, #e7efe6 0%, transparent 60%),
-        linear-gradient(160deg, var(--bg) 0%, var(--bg-deep) 100%);
+      background: radial-gradient(circle at top, #f7f2e8 0%, #eef5ee 40%, #f5efe5 100%);
       color: var(--ink);
     }
-    .wrap { max-width: 1020px; margin: 0 auto; padding: 48px 20px 64px; }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -20% -10%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(92, 158, 120, 0.28) 0%, rgba(92, 158, 120, 0) 42%),
+        radial-gradient(circle at 30% 70%, rgba(178, 142, 98, 0.28) 0%, rgba(178, 142, 98, 0) 46%),
+        radial-gradient(circle at 70% 35%, rgba(200, 127, 86, 0.28) 0%, rgba(200, 127, 86, 0) 40%),
+        radial-gradient(circle at 85% 80%, rgba(120, 168, 116, 0.24) 0%, rgba(120, 168, 116, 0) 45%);
+      animation: floatBlobs 22s ease-in-out infinite;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    body::after {
+      animation-duration: 30s;
+      animation-direction: reverse;
+      opacity: 0.65;
+      filter: blur(2px);
+    }
+    @keyframes floatBlobs {
+      0% { transform: translate3d(-2%, -1%, 0) scale(1); }
+      50% { transform: translate3d(2%, 2%, 0) scale(1.05); }
+      100% { transform: translate3d(-2%, -1%, 0) scale(1); }
+    }
+    .wrap { max-width: none; width: 100%; margin: 0; padding: 48px 32px 64px; box-sizing: border-box; }
     .hero {
       display: grid;
       grid-template-columns: 1.1fr 0.9fr;
       gap: 32px;
       align-items: center;
+    }
+    .reviews {
+      margin-top: 56px;
+      display: grid;
+      gap: 18px;
+    }
+    .reviewsHeader {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.6px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .reviewGrid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .reviewCard {
+      background: rgba(251, 248, 241, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 16px 30px rgba(31, 38, 34, 0.08);
+      display: grid;
+      gap: 10px;
+    }
+    .reviewQuote {
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin: 0;
+    }
+    .reviewMeta {
+      display: grid;
+      gap: 2px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+    }
+    .reviewStars {
+      color: var(--accent-strong);
+      font-size: 12px;
+      letter-spacing: 2px;
     }
     .eyebrow {
       text-transform: uppercase;
@@ -139,6 +208,7 @@
       .wrap { padding: 40px 18px 56px; }
       .hero { grid-template-columns: 1fr; }
       .stats { grid-template-columns: 1fr; }
+      .reviewGrid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -181,6 +251,36 @@
         </ul>
       </div>
     </div>
+
+    <section class="reviews">
+      <div class="reviewsHeader">What people are saying</div>
+      <div class="reviewGrid">
+        <article class="reviewCard">
+          <div class="reviewStars">★★★★★</div>
+          <p class="reviewQuote">“I finally understood how my contributions stack up over time. The scenarios are gold.”</p>
+          <div class="reviewMeta">
+            <span>Ashley R.</span>
+            <span>First-time investor</span>
+          </div>
+        </article>
+        <article class="reviewCard">
+          <div class="reviewStars">★★★★★</div>
+          <p class="reviewQuote">“The income path slider made it easy to map career growth without a spreadsheet.”</p>
+          <div class="reviewMeta">
+            <span>Marco P.</span>
+            <span>Product manager</span>
+          </div>
+        </article>
+        <article class="reviewCard">
+          <div class="reviewStars">★★★★★</div>
+          <p class="reviewQuote">“Clean, fast, and surprisingly detailed. I used it to plan a house deposit timeline.”</p>
+          <div class="reviewMeta">
+            <span>Devon K.</span>
+            <span>Designer</span>
+          </div>
+        </article>
+      </div>
+    </section>
   </div>
 </body>
 </html>
